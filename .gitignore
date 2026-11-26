@@ -1,0 +1,19 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Playwright
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
+
+# Mock API runtime data (regenerated from db.seed.json on every start)
+mock-api/db.json
+
+# Env & OS
+.env
+.env.*
+.DS_Store

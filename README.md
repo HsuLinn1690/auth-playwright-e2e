@@ -1,5 +1,7 @@
 # auth-playwright-e2e
 
+[![Tests](https://github.com/HsuLinn1690/auth-playwright-e2e/actions/workflows/tests.yml/badge.svg?branch=dev-master)](https://github.com/HsuLinn1690/auth-playwright-e2e/actions/workflows/tests.yml)
+
 Front-end Sign Up / Sign In app (React + Vite + TypeScript) with a json-server mock API, built as a target for Playwright UI E2E and API tests, gated by GitHub Actions.
 
 > **Security note:** this is demo auth only. Passwords are stored **in plaintext** in `mock-api/db.json`. Never use a real password here.
@@ -90,7 +92,16 @@ Playwright starts the app and the mock API automatically (`webServer` in `playwr
 
 Known limitations (by design): json-server does not validate input, does not enforce unique emails, and returns passwords in responses. All rules are enforced by the front end.
 
-## Branching
+## Branching and CI
 
-- Work lands on `dev-master`.
-- Open a PR from `dev-master` to `master`. GitHub Actions runs the tests, and branch protection blocks the merge until they pass.
+```
+feature/* ──PR──► dev-master ──PR──► master
+```
+
+| Event | Typecheck | API tests | E2E browsers |
+| --- | --- | --- | --- |
+| PR `feature/*` → `dev-master` | ✅ | ✅ | Chromium |
+| Push to `dev-master` | ✅ | ✅ | Chromium |
+| PR `dev-master` → `master` | ✅ | ✅ | Chromium, Firefox, WebKit |
+
+Workflow: `.github/workflows/tests.yml`. Reports and failure traces are attached to each run under **Artifacts** (kept 14 days). Branch protection on `master` blocks merging until all checks pass.

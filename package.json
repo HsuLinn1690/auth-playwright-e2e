@@ -13,6 +13,8 @@
     "test": "playwright test",
     "test:e2e": "playwright test --project=chromium",
     "test:api": "playwright test --project=api",
+    "test:critical": "playwright test --grep @critical",
+    "test:edge": "playwright test --grep @edge",
     "test:ui": "playwright test --ui",
     "report": "playwright show-report"
   },

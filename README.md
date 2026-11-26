@@ -39,6 +39,8 @@ Open http://localhost:5173 and sign in with the seed user `testuser@example.com`
 | `npm test` | All Playwright projects (api, chromium, firefox, webkit) |
 | `npm run test:e2e` | UI tests in Chromium only |
 | `npm run test:api` | API tests only |
+| `npm run test:critical` | Merge-blocking tests only (`@critical`) |
+| `npm run test:edge` | Edge-case tests only (`@edge`) |
 | `npm run test:ui` | Playwright UI mode |
 | `npm run report` | Open the last HTML report |
 
@@ -60,8 +62,10 @@ Playwright starts the app and the mock API automatically (`webServer` in `playwr
 │   ├── messages.ts           # All UI strings (single source for tests)
 │   └── App.tsx               # Routes
 ├── tests/
-│   ├── e2e/                  # Playwright UI tests
-│   └── api/                  # Playwright API tests
+│   ├── pages/                # Page Objects (SignUpPage, SignInPage, WelcomePage)
+│   ├── support/              # fixtures.ts (custom fixtures), test-data.ts
+│   ├── e2e/                  # UI tests: signup, signin, session, resilience
+│   └── api/                  # API contract tests
 └── playwright.config.ts
 ```
 

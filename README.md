@@ -105,3 +105,4 @@ feature/* ──PR──► dev-master ──PR──► master
 | PR `dev-master` → `master` | ✅ | ✅ | Chromium, Firefox, WebKit |
 
 Workflow: `.github/workflows/tests.yml`. Reports and failure traces are attached to each run under **Artifacts** (kept 14 days). Branch protection on `master` blocks merging until all checks pass.
+<!-- Ruleset pass-flow test: 2026-11-26 -->

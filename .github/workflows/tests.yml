@@ -1,0 +1,95 @@
+name: Tests
+
+# When this workflow runs
+#   PR  feature/* -> dev-master : typecheck + API + E2E (chromium)          fast feedback
+#   PR  dev-master -> master    : typecheck + API + E2E (chromium/firefox/webkit)  release gate
+#   push to dev-master          : same as a dev-master PR (confirms the merged result)
+#   manual                      : Actions tab -> Tests -> Run workflow
+on:
+  pull_request:
+    branches: [dev-master, master]
+  push:
+    branches: [dev-master]
+  workflow_dispatch:
+
+# A new push to the same PR/branch cancels the older, now-outdated run
+concurrency:
+  group: tests-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+# Least privilege: the workflow only needs to read the code
+permissions:
+  contents: read
+
+jobs:
+  typecheck:
+    name: Typecheck
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+
+  api:
+    name: API tests
+    needs: typecheck
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      # No browser needed: API tests use Playwright's request context only.
+      # Playwright's webServer config starts the mock API (and the app) automatically.
+      - run: npx playwright test --project=api
+      - name: Upload report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-report-api
+          path: playwright-report/
+          retention-days: 14
+
+  e2e:
+    name: E2E (${{ matrix.browser }})
+    needs: typecheck
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false # one browser failing still lets the others finish and report
+      matrix:
+        # PRs into master test all 3 browsers; everything else runs Chromium only
+        browser: ${{ fromJSON(github.base_ref == 'master' && '["chromium","firefox","webkit"]' || '["chromium"]') }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Install ${{ matrix.browser }} and its OS dependencies
+        run: npx playwright install --with-deps ${{ matrix.browser }}
+      - name: Run E2E tests (${{ matrix.browser }})
+        run: npx playwright test --project=${{ matrix.browser }}
+      - name: Upload HTML report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-report-${{ matrix.browser }}
+          path: playwright-report/
+          retention-days: 14
+      - name: Upload traces, screenshots, videos (on failure)
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-results-${{ matrix.browser }}
+          path: test-results/
+          retention-days: 14
